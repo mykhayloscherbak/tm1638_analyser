@@ -18,7 +18,11 @@ class Hla(HighLevelAnalyzer):
         },
         'ed': {
             'format': 'State: {{data.char}}'
+        },
+        'disp cmd': {
+            'format': 'Dis cmd: {{data.disp_cmd}}'
         }
+
     }
 
 
@@ -44,8 +48,14 @@ class Hla(HighLevelAnalyzer):
             retval = 'E'
         if frame.type == "disable":
             retval = 'D'
+
         if retval is not None:
             return AnalyzerFrame('ed', frame.start_time, frame.end_time, {
             'char': retval
-    })
+            })
+        if frame.type == 'result':
+            if frame.data['mosi'][0] >> 6 == 0xb11:
+                return AnalyzerFrame('disp cmd', frame.start_time, frame.end_time, {
+                    'disp_cmd': 'Command'
+                })
 
