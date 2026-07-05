@@ -85,6 +85,8 @@ class Hla(HighLevelAnalyzer):
             format = {'disp_cmd': self.disp_cmd}
             for i in range(16):
                 format['b{:d}'.format(i)] = self.data[i]
+            with open(r"/home/mikl/projects/hla/tm1638/saleae_hla_debug.txt", "a", encoding="utf-8") as f:
+                f.write(str(format) + "\n")
             retval = AnalyzerFrame('data cmd', self.start_time, end_time, format)
         else:
             retval = AnalyzerFrame('disp cmd', self.start_time, end_time, {'disp_cmd': self.disp_cmd})
