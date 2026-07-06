@@ -24,7 +24,7 @@ class Hla(HighLevelAnalyzer):
             'format': 'err: {{data.error}}'
         },
         'data cmd' : {
-            'format': 'cmd: {{data.disp_cmd}}, data: {{data.b0}} {{data.b1}} {{data.b2} {{data.b3}} {{data.b4}} {{data.b5}} {{data.b6}} {{data.b7}} {{data.b8}} {{data.b9}} {{data.b10}} {{data.b11}} {{data.b12} {{data.b13}} {{data.b14}} {{data.b15}}'
+            'format': 'cmd: {{data.disp_cmd}}, data: {{data.b0}} {{data.b1}} {{data.b2}} {{data.b3}} {{data.b4}} {{data.b5}} {{data.b6}} {{data.b7}} {{data.b8}} {{data.b9}} {{data.b10}} {{data.b11}} {{data.b12} {{data.b13}} {{data.b14}} {{data.b15}}'
         }
 
     }
@@ -85,7 +85,7 @@ class Hla(HighLevelAnalyzer):
             format = {'disp_cmd': self.disp_cmd}
             for i in range(16):
                 format['b{:d}'.format(i)] = self.data[i]
-            with open(r"/home/mikl/projects/hla/tm1638/saleae_hla_debug.txt", "a", encoding="utf-8") as f:
+            with open(r"D:\mis\projects\tm1638_analyser\saleae_hla_debug.txt", "a", encoding="utf-8") as f:
                 f.write(str(format) + "\n")
             retval = AnalyzerFrame('data cmd', self.start_time, end_time, format)
         else:
