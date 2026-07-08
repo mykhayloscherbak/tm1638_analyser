@@ -3,6 +3,7 @@
 
 from saleae.analyzers import HighLevelAnalyzer, AnalyzerFrame, StringSetting, NumberSetting, ChoicesSetting
 
+class tm1638_analyzer():
 
 
 # High level analyzers must subclass the HighLevelAnalyzer class.
@@ -14,9 +15,6 @@ class Hla(HighLevelAnalyzer):
 
     # An optional list of types this analyzer produces, providing a way to customize the way frames are displayed in Logic 2.
     result_types = {
-        'mytype': {
-            'format': 'Output type: {{type}}, Input type: {{data.input_type}}'
-        },
         'disp cmd': {
             'format': 'cmd: {{data.disp_cmd}}'
         },
@@ -24,7 +22,7 @@ class Hla(HighLevelAnalyzer):
             'format': 'err: {{data.error}}'
         },
         'data cmd' : {
-            'format': 'cmd: {{data.disp_cmd}}, data: {{data.b0}} {{data.b1}} {{data.b2}} {{data.b3}} {{data.b4}} {{data.b5}} {{data.b6}} {{data.b7}} {{data.b8}} {{data.b9}} {{data.b10}} {{data.b11}} {{data.b12} {{data.b13}} {{data.b14}} {{data.b15}}'
+            'format': 'cmd: {{data.disp_cmd}}, data: {{data.b0}} {{data.b1}} {{data.b2}} {{data.b3}} {{data.b4}} {{data.b5}} {{data.b6}} {{data.b7}} {{data.b8}} {{data.b9}} {{data.b10}} {{data.b11}} {{data.b12}} {{data.b13}} {{data.b14}} {{data.b15}}'
         }
 
     }
@@ -77,16 +75,13 @@ class Hla(HighLevelAnalyzer):
             self.addr = self.addr & 0xF
 
 
-
-
-
     def __flush__(self,end_time):
         if self.multibyte:
             format = {'disp_cmd': self.disp_cmd}
             for i in range(16):
                 format['b{:d}'.format(i)] = self.data[i]
-            with open(r"D:\mis\projects\tm1638_analyser\saleae_hla_debug.txt", "a", encoding="utf-8") as f:
-                f.write(str(format) + "\n")
+            # with open(r"D:\mis\projects\tm1638_analyser\saleae_hla_debug.txt", "a", encoding="utf-8") as f:
+            #     f.write(str(format) + "\n")
             retval = AnalyzerFrame('data cmd', self.start_time, end_time, format)
         else:
             retval = AnalyzerFrame('disp cmd', self.start_time, end_time, {'disp_cmd': self.disp_cmd})
@@ -114,10 +109,9 @@ class Hla(HighLevelAnalyzer):
             return self.__flush__(frame.start_time)
 
         if frame.type == 'result':
-            if self.state != 'Data':
-                return AnalyzerFrame('error', frame.start_time, frame.end_time, {
-                    'error': 'Unexpected data'
-                })
-            else:
-                self.__analyse__(frame.data)
+            if self.my_choices_setting ==  'QYF-TM1638 board':
+                if self.state != 'Data':
+                    return AnalyzerFrame('error', frame.start_time, frame.end_time, {'error': 'Unexpected data'})
+                else:
+                    self.__analyse__(frame.data)
 
