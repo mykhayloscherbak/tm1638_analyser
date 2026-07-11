@@ -3,8 +3,6 @@
 
 from saleae.analyzers import HighLevelAnalyzer, AnalyzerFrame, StringSetting, NumberSetting, ChoicesSetting
 
-class tm1638_analyzer():
-
 
 # High level analyzers must subclass the HighLevelAnalyzer class.
 class Hla(HighLevelAnalyzer):
@@ -21,8 +19,14 @@ class Hla(HighLevelAnalyzer):
         'error': {
             'format': 'err: {{data.error}}'
         },
-        'data cmd' : {
+        'data out cmd' : {
             'format': 'cmd: {{data.disp_cmd}}, data: {{data.b0}} {{data.b1}} {{data.b2}} {{data.b3}} {{data.b4}} {{data.b5}} {{data.b6}} {{data.b7}} {{data.b8}} {{data.b9}} {{data.b10}} {{data.b11}} {{data.b12}} {{data.b13}} {{data.b14}} {{data.b15}}'
+        },
+        'data in cmd': {
+            'format': 'cmd: {{data.disp_cmd}}, data: {{data.b0}} {{data.b1}} {{data.b2}} {{data.b3}}'
+        },
+        'pure data': {
+            'format': '{{data.data}}'
         }
 
     }
@@ -46,7 +50,7 @@ class Hla(HighLevelAnalyzer):
         self.multibyte = False
 
 
-    def __analyse__(self, framedata):
+    def __analyse__(self, framedata, start_time, end_time):
         byte = int.from_bytes(framedata['mosi'])
         if not self.multibyte:
 
@@ -56,6 +60,9 @@ class Hla(HighLevelAnalyzer):
                     self.data_mode = 'DataOut'
                 if byte & 0x3 == 2:
                     self.data_mode = 'DataIn'
+                    self.addr = 0
+                    self.multibyte = True
+                    self.disp_cmd = 'cmd: Data in'
                 if byte & 0x1 == 1 or byte & 0x8 == 0x8: # invalid lsb or test mode
                     self.data_mode = 'DataInvalid'
                 self.increment = byte & 0x04 == 0
@@ -69,20 +76,35 @@ class Hla(HighLevelAnalyzer):
                 if byte & 0x8 == 0:
                     brightness = 0
                 self.disp_cmd = 'Brightness = {:d}'.format(brightness)
+
         else:
             self.data[self.addr] = byte
             self.addr += 1
-            self.addr = self.addr & 0xF
+            if self.data_mode == 'DataOut':
+                self.addr = self.addr & 0xF
+            if self.data_mode == 'DataIn':
+                self.addr = self.addr & 0x03
+        if self.multibyte and self.my_choices_setting == 'tm1638 chip':
+            return AnalyzerFrame('pure data', start_time, end_time, {'pure_data': byte})
 
 
     def __flush__(self,end_time):
-        if self.multibyte:
+        retval = None
+        if self.multibyte and self.my_choices_setting == 'QYF-TM1638 board':
             format = {'disp_cmd': self.disp_cmd}
-            for i in range(16):
-                format['b{:d}'.format(i)] = self.data[i]
-            # with open(r"D:\mis\projects\tm1638_analyser\saleae_hla_debug.txt", "a", encoding="utf-8") as f:
-            #     f.write(str(format) + "\n")
-            retval = AnalyzerFrame('data cmd', self.start_time, end_time, format)
+            out_needed = False
+            if self.data_mode == 'DataOut':
+                data_type = 'data out cmd'
+                out_needed = True
+                for i in range(16):
+                    format['b{:d}'.format(i)] = self.data[i]
+            if self.data_mode == 'DataIn':
+                out_needed = True
+                data_type = 'data in cmd'
+                for i in range(16):
+                    format['b{:d}'.format(i)] = self.data[i]
+            if out_needed:
+                retval = AnalyzerFrame(data_type, self.start_time, end_time, format)
         else:
             retval = AnalyzerFrame('disp cmd', self.start_time, end_time, {'disp_cmd': self.disp_cmd})
         self.multibyte = False
@@ -109,9 +131,9 @@ class Hla(HighLevelAnalyzer):
             return self.__flush__(frame.start_time)
 
         if frame.type == 'result':
-            if self.my_choices_setting ==  'QYF-TM1638 board':
+
                 if self.state != 'Data':
                     return AnalyzerFrame('error', frame.start_time, frame.end_time, {'error': 'Unexpected data'})
                 else:
-                    self.__analyse__(frame.data)
+                    return self.__analyse__(frame.data,  frame.start_time, frame.end_time)
 
