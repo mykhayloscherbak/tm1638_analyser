@@ -25,10 +25,12 @@ class Hla(HighLevelAnalyzer):
         'data in cmd': {
             'format': 'cmd: {{data.disp_cmd}}, data: {{data.b0}} {{data.b1}} {{data.b2}} {{data.b3}}'
         },
-        'pure data': {
-            'format': '{{data.data}}'
+        'data out cmd decoded' : {
+            'format' : 'cmd: {{data.disp_cmd}}, decoded: {{data.str}}'
+        },
+        'data in cmd decoded': {
+            'format': 'cmd: {{data.disp_cmd}}, decoded: {{data.str}}'
         }
-
     }
 
 
@@ -84,13 +86,14 @@ class Hla(HighLevelAnalyzer):
                 self.addr = self.addr & 0xF
             if self.data_mode == 'DataIn':
                 self.addr = self.addr & 0x03
-        if self.multibyte and self.my_choices_setting == 'tm1638 chip':
-            return AnalyzerFrame('pure data', start_time, end_time, {'pure_data': byte})
 
+    def __decode_data__(self, data_type, data):
+        format = {'disp_cmd': self.disp_cmd, 'str' : 'test_line'}
+        return format
 
     def __flush__(self,end_time):
         retval = None
-        if self.multibyte and self.my_choices_setting == 'QYF-TM1638 board':
+        if self.multibyte :
             format = {'disp_cmd': self.disp_cmd}
             out_needed = False
             if self.data_mode == 'DataOut':
@@ -104,7 +107,11 @@ class Hla(HighLevelAnalyzer):
                 for i in range(16):
                     format['b{:d}'.format(i)] = self.data[i]
             if out_needed:
-                retval = AnalyzerFrame(data_type, self.start_time, end_time, format)
+                if self.my_choices_setting == 'QYF-TM1638 board':
+                    decoded = self.__decode_data__(data_type, self.data)
+                    retval = AnalyzerFrame(data_type + ' decoded', self.start_time, end_time, decoded)
+                else:
+                    retval = AnalyzerFrame(data_type, self.start_time, end_time, format)
         else:
             retval = AnalyzerFrame('disp cmd', self.start_time, end_time, {'disp_cmd': self.disp_cmd})
         self.multibyte = False
