@@ -60,6 +60,7 @@ class Hla(HighLevelAnalyzer):
             if cmd == 0x1:
                 if byte & 0x3 == 0:
                     self.data_mode = 'DataOut'
+                    self.disp_cmd = 'cmd: Data out'
                 if byte & 0x3 == 2:
                     self.data_mode = 'DataIn'
                     self.addr = 0
@@ -73,6 +74,7 @@ class Hla(HighLevelAnalyzer):
                 self.addr = byte & 0x0f
                 self.disp_cmd = 'Addr: {:d}'.format(self.addr)
                 self.multibyte = True
+                self.data_mode = 'DataOut'
             if cmd == 0x2:
                 brightness = byte & 0x07 + 1
                 if byte & 0x8 == 0:
@@ -88,7 +90,35 @@ class Hla(HighLevelAnalyzer):
                 self.addr = self.addr & 0x03
 
     def __decode_data__(self, data_type, data):
-        format = {'disp_cmd': self.disp_cmd, 'str' : 'test_line'}
+        result = ''
+        if data_type == 'data out cmd':
+            b_tmp = []
+            for i in range(8):
+                b_tmp.append(data[i * 2])
+            b_tmp = bytes(b_tmp)
+            transformed = bytearray(8)
+            for byte in range(8):
+                for bit in range(8):
+                    if b_tmp[byte] & (1 << bit) != 0:
+                        transformed[7- bit] |= (1 << byte)
+            SEGMENT_SYMBOLS = {
+                0x00: " ",
+                0x3F: "0", 0x06: "1", 0x5B: "2", 0x4F: "3", 0x66: "4",
+                0x6D: "5", 0x7D: "6", 0x07: "7", 0x7F: "8", 0x6F: "9",
+                0x77: "A", 0x5F: "a", 0x7C: "b", 0x39: "C", 0x5E: "d",
+                0x79: "E", 0x7B: "e", 0x71: "F", 0x50: "r"
+            }
+            result = "\""
+            for s in transformed:
+                symbol = SEGMENT_SYMBOLS.get(s & 0x7F, None)
+                if symbol is not None:
+                    result = result + symbol
+                else:
+                    result = result + "<{:02X}>".format(s)
+                if s & 0x80 != 0:
+                    result = result + '.'
+            result = result + "\""
+        format = {'disp_cmd': self.disp_cmd, 'str' : result}
         return format
 
     def __flush__(self,end_time):
@@ -104,7 +134,7 @@ class Hla(HighLevelAnalyzer):
             if self.data_mode == 'DataIn':
                 out_needed = True
                 data_type = 'data in cmd'
-                for i in range(16):
+                for i in range(4):
                     format['b{:d}'.format(i)] = self.data[i]
             if out_needed:
                 if self.my_choices_setting == 'QYF-TM1638 board':
@@ -115,6 +145,7 @@ class Hla(HighLevelAnalyzer):
         else:
             retval = AnalyzerFrame('disp cmd', self.start_time, end_time, {'disp_cmd': self.disp_cmd})
         self.multibyte = False
+        self.data_mode = 'DataInvalid'
         return retval
 
 
