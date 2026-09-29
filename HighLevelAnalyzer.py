@@ -118,6 +118,30 @@ class Hla(HighLevelAnalyzer):
                 if s & 0x80 != 0:
                     result = result + '.'
             result = result + "\""
+        elif data_type == 'data in cmd':
+            keys_bitmap = {
+                1:  "R3C1",
+                2:  "R1C1",
+                5:  "R3C2",
+                6:  "R1C2",
+                9:  "R3C3",
+                10: "R1C3",
+                13: "R3C4",
+                14: "R1C4",
+                17: "R4C1",
+                18: "R2C1",
+                21: "R4C2",
+                22: "R2C2",
+                25: "R4C3",
+                26: "R2C3",
+                29: "R4C4",
+                30: "R2C4"
+            }
+            b32 = data[0] + (data[1] << 8) + (data[2] << 16) + (data[3] << 24)
+            result = ""
+            for bit in range(32):
+                if b32 & (1 << bit) != 0 and bit in keys_bitmap.keys():
+                    result = result+keys_bitmap[bit] + " "
         format = {'disp_cmd': self.disp_cmd, 'str' : result}
         return format
 
