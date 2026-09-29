@@ -3,7 +3,7 @@
   "apiVersion": "1.0.0",
   "author": "mis@ektos.net",
   "version": "0.0.1",
-  "description": "Decodes the tm1638 16button board",
+  "description": "Decodes the qyf-tm1638  board",
   "extensions": {
     "tm1638": {
       "type": "HighLevelAnalyzer",
