@@ -1,13 +1,12 @@
 
   # tm1638
   
-## Getting started
-
-1. Build your extension by updating the Python files for your needs
-2. Create a public Github repo and push your code 
-3. Update this README
-4. Open the Logic app and publish your extension
-5. Create a Github release
-6. Debug your hardware like you've never done before :)
+## Description
+* This decoder gets keyscan and LED data from the SPI half duplex protocol
+* It has 2 modes - tm1638 for raw chip data decoding and QYF-TM1638 board 
+* QYF-TM1638 mode shows the keyscans in format RyCx where y is a key row and x is a key column
+* QYF-TM1638 decodes the symbol generator patterns from the  SEGMENT_SYMBOLS variable. You can add your own ones.
+* Results can be seen in a table view
+             
 
   

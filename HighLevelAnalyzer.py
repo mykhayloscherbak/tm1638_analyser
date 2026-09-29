@@ -1,6 +1,14 @@
 # High Level Analyzer
 # For more information and documentation, please go to https://support.saleae.com/extensions/high-level-analyzer-extensions
 
+SEGMENT_SYMBOLS = {
+    0x00: " ",
+    0x3F: "0", 0x06: "1", 0x5B: "2", 0x4F: "3", 0x66: "4",
+    0x6D: "5", 0x7D: "6", 0x07: "7", 0x7F: "8", 0x6F: "9",
+    0x77: "A", 0x5F: "a", 0x7C: "b", 0x39: "C", 0x5E: "d",
+    0x79: "E", 0x7B: "e", 0x71: "F", 0x50: "r"
+}
+
 from saleae.analyzers import HighLevelAnalyzer, AnalyzerFrame, StringSetting, NumberSetting, ChoicesSetting
 
 
@@ -101,13 +109,6 @@ class Hla(HighLevelAnalyzer):
                 for bit in range(8):
                     if b_tmp[byte] & (1 << bit) != 0:
                         transformed[7- bit] |= (1 << byte)
-            SEGMENT_SYMBOLS = {
-                0x00: " ",
-                0x3F: "0", 0x06: "1", 0x5B: "2", 0x4F: "3", 0x66: "4",
-                0x6D: "5", 0x7D: "6", 0x07: "7", 0x7F: "8", 0x6F: "9",
-                0x77: "A", 0x5F: "a", 0x7C: "b", 0x39: "C", 0x5E: "d",
-                0x79: "E", 0x7B: "e", 0x71: "F", 0x50: "r"
-            }
             result = "\""
             for s in transformed:
                 symbol = SEGMENT_SYMBOLS.get(s & 0x7F, None)

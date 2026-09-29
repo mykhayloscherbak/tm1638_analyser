@@ -2,8 +2,8 @@
   "name": "tm1638",
   "apiVersion": "1.0.0",
   "author": "mis@ektos.net",
-  "version": "0.0.1",
-  "description": "Decodes the qyf-tm1638  board",
+  "version": "1.0.1",
+  "description": "Decodes tm1638 chip protocol from half duplex SPI or QYF-TM1638 board with 7 seg LED string",
   "extensions": {
     "tm1638": {
       "type": "HighLevelAnalyzer",
