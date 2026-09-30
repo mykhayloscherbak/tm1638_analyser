@@ -183,9 +183,6 @@ class Hla(HighLevelAnalyzer):
 
         # Return the data frame itself
 
-        # with open(r"d:\mis\projects\tm1638_analyser\saleae_hla_debug.txt", "a", encoding="utf-8") as f:
-        #     f.write(str(frame.type) + "\n")
-        #     f.write(str(frame.data) + "\n\n")
         if frame.type == "enable":
             self.state = "Data"
             self.start_time = frame.start_time
